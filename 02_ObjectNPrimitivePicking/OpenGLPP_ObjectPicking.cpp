@@ -51,10 +51,10 @@ GLuint gVertexShaderObject;
 GLuint gFragmentShaderObject;
 GLuint gShaderProgramObject;
 
-GLuint gVao_pyramid;
-GLuint gVbo_pyramid_position;
-GLuint gVbo_pyramid_texture;
-GLuint gEbo_pyramid;
+GLuint gVao_triangle;
+GLuint gVbo_triangle_position;
+GLuint gVbo_triangle_texture;
+GLuint gTriangle_Indices;
 
 GLuint gVao_cube;
 GLuint gVbo_cube_position;
@@ -863,24 +863,7 @@ void initialize(void)
 
 	// ----------- 
 	// *** vertices, colors, shader attribs, vbo, vao initializations ***
-	const GLfloat pyramidVertices[] =
-	{
-		0, 1, 0,  // front-top
-		-1, -1, 1,  // front-left
-		1, -1, 1,  // front-right
 
-		0, 1, 0    // right-top
-		//1, -1, 1,   // right-left
-		//1, -1, -1,  // right-right
-
-		//0, 1, 0,    // back-top
-		//1, -1, -1,  // back-left
-		//-1, -1, -1, // back-right
-
-		//0, 1, 0,    // left-top
-		//-1, -1, -1, // left-left
-		//-1, -1, 1   // left-right
-	};
 	const GLfloat triangleVertices[] =
 	{
 		-1.0, 1.0, 0.0,  // front-top P
@@ -898,37 +881,18 @@ void initialize(void)
 		0,1,2,0,2,3
 	};
 
-	const GLfloat pyramidTexcoords[] =
-	{
-		0.5, 1.0, // front-top
-		0.0, 0.0, // front-left
-		1.0, 0.0, // front-right
 
-		0.5, 1.0, // right-top
-		//1.0, 0.0, // right-left
-		//0.0, 0.0, // right-right
-
-		//0.5, 1.0, // back-top
-		//1.0, 0.0, // back-left
-		//0.0, 0.0, // back-right
-
-		//0.5, 1.0, // left-top
-		//0.0, 0.0, // left-left
-		//1.0, 0.0, // left-right
-	};
-	
-
-	glGenVertexArrays(1, &gVao_pyramid);
-	glBindVertexArray(gVao_pyramid);
+	glGenVertexArrays(1, &gVao_triangle);
+	glBindVertexArray(gVao_triangle);
 	UINT temp = sizeof(triangleIndices);
-	glGenBuffers(1, &gEbo_pyramid);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gEbo_pyramid);
+	glGenBuffers(1, &gTriangle_Indices);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gTriangle_Indices);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		sizeof(triangleIndices), triangleIndices, GL_STATIC_DRAW);
 
 	GLuint tempSize = sizeof(triangleVertices);
-	glGenBuffers(1, &gVbo_pyramid_position);
-	glBindBuffer(GL_ARRAY_BUFFER, gVbo_pyramid_position);
+	glGenBuffers(1, &gVbo_triangle_position);
+	glBindBuffer(GL_ARRAY_BUFFER, gVbo_triangle_position);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
 	unsigned int NumFloats = 0;
 
@@ -1228,7 +1192,6 @@ void pickingPhase(void)
 	mat4 rotationMatrix = mat4::identity();
 	// translate for perspective
 	modelViewMatrix = translate(0.0f, 0.0f, -6.0f);
-
 	
 	// rotate pyramid
 	rotationMatrix = rotate(gAnglePyramid, 0.0f, 1.0f, 0.0f);
@@ -1255,7 +1218,7 @@ void pickingPhase(void)
 void renderElement(void * baseIndex, GLint baseVertex)
 {
 	// *** bind vao ***
-	glBindVertexArray(gVao_pyramid);
+	glBindVertexArray(gVao_triangle);
 
 	glDrawElementsBaseVertex(GL_TRIANGLES,
 		3,
@@ -1356,24 +1319,24 @@ void uninitialize(void)
 
 	// PYRAMID
 	// destroy vao
-	if (gVao_pyramid)
+	if (gVao_triangle)
 	{
-		glDeleteVertexArrays(1, &gVao_pyramid);
-		gVao_pyramid = 0;
+		glDeleteVertexArrays(1, &gVao_triangle);
+		gVao_triangle = 0;
 	}
 
 	// destroy vbo position
-	if (gVbo_pyramid_position)
+	if (gVbo_triangle_position)
 	{
-		glDeleteBuffers(1, &gVbo_pyramid_position);
-		gVbo_pyramid_position = 0;
+		glDeleteBuffers(1, &gVbo_triangle_position);
+		gVbo_triangle_position = 0;
 	}
 
 	// destroy vbo texture
-	if (gVbo_pyramid_texture)
+	if (gVbo_triangle_texture)
 	{
-		glDeleteBuffers(1, &gVbo_pyramid_texture);
-		gVbo_pyramid_texture = 0;
+		glDeleteBuffers(1, &gVbo_triangle_texture);
+		gVbo_triangle_texture = 0;
 	}
 
 	if (gTexture_Stone)
