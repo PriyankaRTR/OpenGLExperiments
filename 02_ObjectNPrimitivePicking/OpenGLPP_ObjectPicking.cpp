@@ -733,130 +733,6 @@ void initialize(void)
 
 	shaderLoader = new ShaderLoader();
 
-	// *** VERTEX SHADER ***
-	// create shader
-	gVertexShaderObject = glCreateShader(GL_VERTEX_SHADER);
-
-	// provide source code to shader
-	const GLchar *vertexShaderSourceCode =
-		"#version 130" \
-		"\n" \
-		"in vec4 vPosition;" \
-		"in vec2 vTexture0_Coord;" \
-		"out vec2 out_texture0_coord;" \
-		"uniform mat4 u_mvp_matrix;" \
-		"void main(void)" \
-		"{" \
-		"gl_Position = u_mvp_matrix * vPosition;" \
-		"out_texture0_coord = vTexture0_Coord;" \
-		"}";
-	glShaderSource(gVertexShaderObject, 1, (const GLchar **)&vertexShaderSourceCode, NULL);
-
-	// compile shader
-	glCompileShader(gVertexShaderObject);
-	GLint iInfoLogLength = 0;
-	GLint iShaderCompiledStatus = 0;
-	char *szInfoLog = NULL;
-	glGetShaderiv(gVertexShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
-	if (iShaderCompiledStatus == GL_FALSE)
-	{
-		glGetShaderiv(gVertexShaderObject, GL_INFO_LOG_LENGTH, &iInfoLogLength);
-		if (iInfoLogLength > 0)
-		{
-			szInfoLog = (char *)malloc(iInfoLogLength);
-			if (szInfoLog != NULL)
-			{
-				GLsizei written;
-				glGetShaderInfoLog(gVertexShaderObject, iInfoLogLength, &written, szInfoLog);
-				fprintf(gpFile, "Vertex Shader Compilation Log : %s\n", szInfoLog);
-				free(szInfoLog);
-				uninitialize();
-				exit(0);
-			}
-		}
-	}
-
-	// *** FRAGMENT SHADER ***
-	// create shader
-	gFragmentShaderObject = glCreateShader(GL_FRAGMENT_SHADER);
-
-	// provide source code to shader
-	const GLchar *fragmentShaderSourceCode =
-		"#version 130" \
-		"\n" \
-		"out vec4 FragColor;" \
-		"in vec2 out_texture0_coord;" \
-		"uniform sampler2D u_texture0_sampler;" \
-		"void main(void)" \
-		"{" \
-		"FragColor = texture(u_texture0_sampler, out_texture0_coord);" \
-		"}";
-	glShaderSource(gFragmentShaderObject, 1, (const GLchar **)&fragmentShaderSourceCode, NULL);
-
-	// compile shader
-	glCompileShader(gFragmentShaderObject);
-	glGetShaderiv(gFragmentShaderObject, GL_COMPILE_STATUS, &iShaderCompiledStatus);
-	if (iShaderCompiledStatus == GL_FALSE)
-	{
-		glGetShaderiv(gFragmentShaderObject, GL_INFO_LOG_LENGTH, &iInfoLogLength);
-		if (iInfoLogLength > 0)
-		{
-			szInfoLog = (char *)malloc(iInfoLogLength);
-			if (szInfoLog != NULL)
-			{
-				GLsizei written;
-				glGetShaderInfoLog(gFragmentShaderObject, iInfoLogLength, &written, szInfoLog);
-				fprintf(gpFile, "Fragment Shader Compilation Log : %s\n", szInfoLog);
-				free(szInfoLog);
-				uninitialize();
-				exit(0);
-			}
-		}
-	}
-
-	// *** SHADER PROGRAM ***
-	// create
-	gShaderProgramObject = glCreateProgram();
-
-	// attach vertex shader to shader program
-	glAttachShader(gShaderProgramObject, gVertexShaderObject);
-
-	// attach fragment shader to shader program
-	glAttachShader(gShaderProgramObject, gFragmentShaderObject);
-
-	// pre-link binding of shader program object with vertex shader position attribute
-	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_VERTEX, "vPosition");
-
-	// pre-link binding of shader program object with vertex shader position attribute
-	glBindAttribLocation(gShaderProgramObject, VDG_ATTRIBUTE_TEXTURE0, "vTexture0_Coord");
-
-	// link shader
-	glLinkProgram(gShaderProgramObject);
-	GLint iShaderProgramLinkStatus = 0;
-	glGetProgramiv(gShaderProgramObject, GL_LINK_STATUS, &iShaderProgramLinkStatus);
-	if (iShaderProgramLinkStatus == GL_FALSE)
-	{
-		glGetProgramiv(gShaderProgramObject, GL_INFO_LOG_LENGTH, &iInfoLogLength);
-		if (iInfoLogLength>0)
-		{
-			szInfoLog = (char *)malloc(iInfoLogLength);
-			if (szInfoLog != NULL)
-			{
-				GLsizei written;
-				glGetProgramInfoLog(gShaderProgramObject, iInfoLogLength, &written, szInfoLog);
-				fprintf(gpFile, "Shader Program Link Log : %s\n", szInfoLog);
-				free(szInfoLog);
-				uninitialize();
-				exit(0);
-			}
-		}
-	}
-
-	// get MVP uniform location
-	gMVPUniform = glGetUniformLocation(gShaderProgramObject, "u_mvp_matrix");
-	gTexture_sampler_uniform = glGetUniformLocation(gShaderProgramObject, "u_texture0_sampler");
-	
-	//************************* PYRAMID Vao*****************************
 	// SHADER------------
 	createShaderObjects();
 	createFrameBufferObject();
@@ -880,7 +756,6 @@ void initialize(void)
 	{
 		0,1,2,0,2,3
 	};
-
 
 	glGenVertexArrays(1, &gVao_triangle);
 	glBindVertexArray(gVao_triangle);
@@ -906,124 +781,7 @@ void initialize(void)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
-	//********************* CUBE ************************
-	// separated two arrays of cube according to above mixed array
-	GLfloat cubeVertices[] =
-	{
-		// top surface
-		1.0f, 1.0f, -1.0f,  // top-right of top
-		-1.0f, 1.0f, -1.0f, // top-left of top
-		-1.0f, 1.0f, 1.0f, // bottom-left of top
-		1.0f, 1.0f, 1.0f,  // bottom-right of top
-
-		// bottom surface
-		1.0f, -1.0f, 1.0f,  // top-right of bottom
-		-1.0f, -1.0f, 1.0f, // top-left of bottom
-		-1.0f, -1.0f, -1.0f, // bottom-left of bottom
-		1.0f, -1.0f, -1.0f,  // bottom-right of bottom
-
-		// front surface
-		1.0f, 1.0f, 1.0f,  // top-right of front
-		-1.0f, 1.0f, 1.0f, // top-left of front
-		-1.0f, -1.0f, 1.0f, // bottom-left of front
-		1.0f, -1.0f, 1.0f,  // bottom-right of front
-
-		// back surface
-		1.0f, -1.0f, -1.0f,  // top-right of back
-		-1.0f, -1.0f, -1.0f, // top-left of back
-		-1.0f, 1.0f, -1.0f, // bottom-left of back
-		1.0f, 1.0f, -1.0f,  // bottom-right of back
-
-		// left surface
-		-1.0f, 1.0f, 1.0f, // top-right of left
-		-1.0f, 1.0f, -1.0f, // top-left of left
-		-1.0f, -1.0f, -1.0f, // bottom-left of left
-		-1.0f, -1.0f, 1.0f, // bottom-right of left
-
-		// right surface
-		1.0f, 1.0f, -1.0f,  // top-right of right
-		1.0f, 1.0f, 1.0f,  // top-left of right
-		1.0f, -1.0f, 1.0f,  // bottom-left of right
-		1.0f, -1.0f, -1.0f,  // bottom-right of right
-	};
-
-	// If above -1.0f Or +1.0f Values Make Cube Much Larger Than Pyramid,
-	// then follow the code in following loop which will convertt all 1s And -1s to -0.75 or +0.75
-	for (int i = 0; i<72; i++)
-	{
-		if (cubeVertices[i]<0.0f)
-			cubeVertices[i] = cubeVertices[i] + 0.25f;
-		else if (cubeVertices[i]>0.0f)
-			cubeVertices[i] = cubeVertices[i] - 0.25f;
-		else
-			cubeVertices[i] = cubeVertices[i]; // no change
-	}
-
-	const GLfloat cubeTexcoords[] =
-	{
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-	};
-
-	// CUBE CODE
-	glGenVertexArrays(1, &gVao_cube);
-	glBindVertexArray(gVao_cube);
-
-	// vbo for position
-	glGenBuffers(1, &gVbo_cube_position);
-	glBindBuffer(GL_ARRAY_BUFFER, gVbo_cube_position);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(VDG_ATTRIBUTE_VERTEX, 3, GL_FLOAT, GL_FALSE, 0, NULL); // 3 is for x,y,z in cubeVertices array
-
-	glEnableVertexAttribArray(VDG_ATTRIBUTE_VERTEX);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// vbo for texture
-	glGenBuffers(1, &gVbo_cube_texture);
-	glBindBuffer(GL_ARRAY_BUFFER, gVbo_cube_texture);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeTexcoords), cubeTexcoords, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(VDG_ATTRIBUTE_TEXTURE0, 2, GL_FLOAT, GL_FALSE, 0, NULL); // 3 is for r,g,b in cubeColors array
-
-	glEnableVertexAttribArray(VDG_ATTRIBUTE_TEXTURE0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-	// ==================
-
-	//createShaderObjects();
-
-
+	
 	glShadeModel(GL_SMOOTH);
 	// set-up depth buffer
 	glClearDepth(1.0f);
@@ -1102,7 +860,7 @@ void renderScene(void)
 	void renderCube(void);
 
 	//render object 
-	if (leftMouseButton.IsPressed)
+	if (leftMouseButton.IsPressed) // if mouse is clicked then render entire scene into different frambuffer and store information
 	{
 		pickingPhase();
 	}
@@ -1123,7 +881,7 @@ void renderPhase(void)
 	mat4 rotationMatrix = mat4::identity();
 
 	int clicked_Obj_Id = -1;
-	if (leftMouseButton.IsPressed)
+	if (leftMouseButton.IsPressed) // if mouse clicked on object
 	{
 		PickingTexture::PixelInfo pixel = pickingEffect->ReadPixel(leftMouseButton.x, gWin_Height - leftMouseButton.y - 1); // since origin at top left corner
 		if (pixel.ObjectID != 0)
@@ -1140,7 +898,7 @@ void renderPhase(void)
 			// multiply the modelview and orthographic matrix to get modelviewprojection matrix
 			modelViewProjectionMatrix = gPerspectiveProjectionMatrix * modelViewMatrix; // ORDER IS IMPORTANT
 			glUniformMatrix4fv(gMVPUniformSimpleClr, 1, GL_FALSE, modelViewProjectionMatrix);
-
+			// render that perticular object in different color(using SimpleColor shader)
 			renderElement((void*)(sizeof(GLushort) * clicked_Obj_Id * 3), 0);
 
 		}
@@ -1201,7 +959,7 @@ void pickingPhase(void)
 	modelViewProjectionMatrix = gPerspectiveProjectionMatrix * modelViewMatrix; // ORDER IS IMPORTANT
 	glUniformMatrix4fv(gMVPUniformPicking, 1, GL_FALSE, modelViewProjectionMatrix);
 
-
+	// render framebuffer fragments with coresponding object information.
 	for (int i = 0; i < 2; i++)
 	{
 		objID = i + 1;
